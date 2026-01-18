@@ -32,4 +32,43 @@ const registerUser = async (req, res) => { // first task is to see request body,
     }
 };
 
-export {registerUser};
+const loginUser = async (req, res) => {
+    try {
+        // check if user already exists
+        const { email, password } = req.body;
+        const user = await User.findOne({
+            email: email.toLowerCase().trim()
+
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // compare password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        res.status(200).json({ 
+            message: "Login successful",
+            user: {
+                id: user._id,
+                email: user.email,
+                username: user.username
+            }
+        });
+
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: "Internal Server Error", error: error.message 
+        });
+    }
+}
+
+export {
+    registerUser,
+    loginUser
+};
